@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Vector.hpp"
 
 Vector::Vector(int n, int* elems) : f_n(n) {
@@ -48,6 +50,10 @@ int Vector::operator*(Vector v) {
         sum += f_elems[i] * v.f_elems[i];
     }
     return sum;
+}
+
+int Vector::index(int i) {
+    return f_elems[i];
 }
 
 void printVector(Vector v, bool even_spacing) {

@@ -7,9 +7,11 @@
  #include <stdio.h>
 
  #include "Vector.cpp"
+ #include "Matrix.cpp"
  #include "Utils.cpp"
 
  int main(int argc, char* argv[]) {
+    
     printf("made array\n");
     int lst[4] = {1, 2, 3, 4};
     Vector v1 = Vector(4, lst);
@@ -35,6 +37,12 @@
     printf("\n");
     printVector(v6, true);
     printf("\n");
+
+    // -------------------------------------------------------------
+
+    int nums[4][3] = {{7, 11, 400}, {2, 5, 4}, {8, 12, 6}, {10, 9, 1}};
+    Matrix A1 = Matrix(4, 3, nums);
+    printMatrix(&A1, true);
 
     return 0;
  }

@@ -21,6 +21,8 @@ struct Vector {
 
     int operator*(Vector v);
 
+    int index(int i);
+
     int f_n;
     int* f_elems;
 
