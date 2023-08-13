@@ -17,6 +17,7 @@ class Vector:
         else:
             self.elems = [0] * size
 
+
     def __add__(self, v):
         if self.n != v.n:
             raise ValueError("Can only add vectors of same size.")
@@ -25,7 +26,8 @@ class Vector:
         for i in range(self.n):
             u.append(self.elems[i] + v.elems[i])
         return Vector(self.n, u)
-    
+
+
     def __sub__(self, v):
         if self.n != v.n:
             raise ValueError("Can only subtract vectors of same size.")
@@ -34,11 +36,26 @@ class Vector:
         for i in range(self.n):
             u.append(self.elems[i] - v.elems[i])
         return Vector(self.n, u)
+
+
+    def __eq__(self, v):
+        if self.n != v.n:
+            return False
+        for i in range(self.n):
+            if self.elems[i] != v.elems[i]:
+                return False
+        return True
     
+
+    def __ne__(self, v):
+        return not (self==v)
+    
+
     def __str__(self):
         s = str(self.elems)
         return s
     
+
     def times(self, k):         
         if type(k) != int and type(k) != float:
             raise TypeError("Can only multiply vectors by scalars.")
@@ -47,6 +64,7 @@ class Vector:
         for i in range(self.n):
             u.append(self.elems[i] * k)
         return Vector(self.n, u)
+
 
     def dot(self, v):
         if self.n != v.n:
@@ -57,12 +75,14 @@ class Vector:
             d += self.elems[i]*v.elems[i]
         return d
     
+
     def mag(self):
         w = 0
         for i in range(self.n):
             w += (self.elems[i])*(self.elems[i])
         w = math.sqrt(w)
         return w
+    
     
     def copy(self):
         return Vector(self.n, self.elems)
@@ -109,5 +129,8 @@ if __name__ == "__main__":
     print(id(v11.elems) == id(v12.elems))
     print(id(v11.elems) == id(v13.elems))
     print(id(v11.elems) == id(v14.elems))
+    print(f"{v11} == {v12}: {v11==v12}")
+    print(f"{v11} == {v1}: {v11==v1}")
+    print(f"{v1} == {v2}: {v1==v2}")
     
     

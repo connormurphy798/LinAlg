@@ -60,6 +60,19 @@ class Matrix:
         return Matrix(m, p, B)
         
 
+    def __eq__(self, A):
+        if (self.m != A.m) or (self.n != A.n):
+            return False
+        for i in range(self.m):
+            if self.rows[i] != A.rows[i]:
+                return False
+        return True
+
+
+    def __ne__(self, A):
+        return not (self == A)
+
+
     def __str__(self):
         # find max number of digits in any number
         c = 2
@@ -177,6 +190,9 @@ if __name__ == "__main__":
     print(A11)
 
     print(identity_matrix(5))
+    print(f"These two:\n{A8}{A9}{A8==A9}")
+    print(f"These two:\n{A8}{A10}{A8==A10}")
+    print(f"These two:\n{A6}{A7}{A6==A7}")
 
 
 
