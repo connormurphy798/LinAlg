@@ -2,8 +2,10 @@ import math
 
 class Vector:
     """
-    A 2d array of numbers.
-    Supports addition, subtraction, dot products, and equality checks.
+    A 1d array of numbers.
+    
+        n = size of vector
+        elems = list of n elements
     """
 
     def __init__(self, size, lst=None):

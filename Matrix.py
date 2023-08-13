@@ -1,6 +1,13 @@
 import Vector as V
 
 class Matrix:
+    """
+    A 2d array of numbers.
+    
+        m = number of rows
+        n = number of columns
+        rows = list of m vectors of size n
+    """
 
     def __init__(self, m, n, lst=None):
         
