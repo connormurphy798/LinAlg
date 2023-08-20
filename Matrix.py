@@ -10,10 +10,11 @@ class Matrix:
         rows = list of m vectors of size n
     """
 
-    def __init__(self, m, n, lst=None):
+    def __init__(self, m, n, lst=None, aug=0):
         
         self.m = m
         self.n = n
+        self.aug = aug
 
         if lst:
             if m != len(lst):
@@ -97,10 +98,13 @@ class Matrix:
                     c = l
         
         # print each row vector
+        aug_index = self.n - self.aug
         s = ""
         for i in range(self.m):
             s += "["
             for j in range(self.n):
+                if j == aug_index:
+                    s += " |"
                 elem = self.rows[i].elems[j]
                 if type(elem) == float:
                     s += f"{elem:>{c}.{2}f}"
@@ -154,6 +158,20 @@ class Matrix:
         self.rows[i].elems[j] = k
 
 
+    def block(self, pos, size):
+        x, y = pos[0], pos[1]
+        dx, dy = size[0], size[1]
+
+        if x + dx > self.m or y + dy > self.n:
+            raise ValueError("Cannot grab block that exceeds matrix bounds")
+        
+        lst = []
+        for i in range(x, x+dx):
+            lst.append(self.rows[i].elems[y:y+dy])
+        
+        return Matrix(dx, dy, lst)
+
+
 def trans(A):
     rows = [[] for i in range(A.n)]
     for i in range(A.m):
@@ -180,6 +198,28 @@ def swap_cols(M, a, b):
     Mstar.swap_cols_ip(a, b)
     return Mstar
     
+
+def augment(A, b):
+    if not isinstance(A, Matrix):
+        raise TypeError("Can only augment matrices")
+    lst = []
+    if isinstance(b, Matrix):
+        if A.m != b.m:
+            raise ValueError("Can only augment using matrices with same number of rows")
+        for i in range(A.m):
+            lst.append(A.rows[i].elems + b.rows[i].elems)
+        aug = b.n
+    elif isinstance(b, V.Vector):
+        if A.m != b.n:
+            raise ValueError("Can only augment matrix of size m by n with vector of size m")
+        for i in range(A.m):
+            lst.append(A.rows[i].elems + [b.elems[i]])
+        aug = 1
+    else:
+        raise TypeError("Can only augment using matrices or vectors")
+        
+    return Matrix(A.m, A.n + aug, lst, aug=aug)
+
 
 def ref(A, elim_matrix=False):
     """
@@ -241,6 +281,22 @@ def rref(A, elim_matrix=False):
             for i in range(0, j):
                 U.row_add(j, i, -U.at(i, j))
     return U
+
+
+def inverse(A):
+    if A.m != A.n:
+        raise ValueError("Non-square matrices are not invertible")
+    n = A.n
+    I = identity_matrix(n)
+    augmented = augment(A, I)
+    U = rref(augmented)
+    U0 = U.block((0, 0), (n, n))
+    if U0 != I:
+        raise ValueError("Matrix is not invertible")
+    return U.block((0, n), (n, n))
+
+
+
 
 if __name__ == "__main__":
     """
@@ -322,3 +378,30 @@ if __name__ == "__main__":
     # print(U25)
 
 
+    # A26 = augment(
+    #     Matrix(3, 3, [[1, 2, 3], [5, 6, 7], [9, 10, 11]]),
+    #     V.Vector(3, [4, 8, 12])
+    # )
+    # print(A26)
+
+    # A27 = augment(
+    #     Matrix(3, 3, [[1, 2, 3], [5, 6, 7], [9, 10, 11]]),
+    #     Matrix(3, 4, [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+    # )
+    # print(A27)
+
+    # lst28 = [[i*6+j for j in range(6)] for i in range(6)]
+    # A28 = Matrix(6, 6, lst28)
+    # print(A28.block((1, 2), (3, 3)))
+
+    # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])
+    # print(inverse(A29))
+
+    A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
+    print(inverse(A30))
+
+    A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
+    print(inverse(A31))
+
+
+    
