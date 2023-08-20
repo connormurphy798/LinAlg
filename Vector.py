@@ -1,4 +1,5 @@
 import math
+import Utils
 
 class Vector:
     """
@@ -15,7 +16,7 @@ class Vector:
 
         self.n = size
         if lst:
-            self.elems = [x for x in lst]
+            self.elems = [(round(x) if Utils.is_integer(x) else x) for x in lst]
         else:
             self.elems = [0] * size
 
@@ -85,7 +86,13 @@ class Vector:
         w = math.sqrt(w)
         return w
     
-    
+
+    def at(self, i):
+        if i >= self.n:
+            raise ValueError(f"index out of range")
+        return self.elems[i]    
+
+
     def copy(self):
         return Vector(self.n, self.elems)
             

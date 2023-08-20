@@ -1,4 +1,5 @@
 import Vector as V
+import Utils
 
 class Matrix:
     """
@@ -85,7 +86,13 @@ class Matrix:
         c = 2
         for i in range(self.m):
             for j in range(self.n):
-                l = len(str(self.rows[i].elems[j])) + 1
+                elem = self.rows[i].elems[j]
+                if type(elem) != float:
+                    l = len(str(elem)) + 1
+                else:
+                    s = str(elem)
+                    s = s[:s.index(".")+3]
+                    l = len(s) + 1
                 if l > c:
                     c = l
         
@@ -94,9 +101,19 @@ class Matrix:
         for i in range(self.m):
             s += "["
             for j in range(self.n):
-                s += f"{self.rows[i].elems[j]:>{c}}"
+                elem = self.rows[i].elems[j]
+                if type(elem) == float:
+                    s += f"{elem:>{c}.{2}f}"
+                else:
+                    s += f"{elem:>{c}}"
             s += " ]\n"
         return s
+
+
+    def at(self, i, j):
+        if i >= self.m:
+            raise ValueError("index out of range")
+        return self.rows[i].at(j)
 
 
     def copy(self):
@@ -117,6 +134,24 @@ class Matrix:
         for i in range(self.m):
             self.rows[i].elems[a] = self.rows[i].elems[b]
             self.rows[i].elems[b] = col_a[i]
+
+
+    def row_add(self, a, b, s=1):
+        """
+        add s*(row a) to row b
+        """
+        self.rows[b] += self.rows[a].times(s)
+
+
+    def row_scale(self, a, s=1):
+        self.rows[a] = self.rows[a].times(s)
+
+
+    def edit_entry(self, i, j, k):
+        """
+        matrix[i, j] = k
+        """
+        self.rows[i].elems[j] = k
 
 
 def trans(A):
@@ -146,16 +181,69 @@ def swap_cols(M, a, b):
     return Mstar
     
 
-def gaussian_elimination(A, elim_matrix=False):
+def ref(A, elim_matrix=False):
     """
-    returns a pair of matrices:
-        U = upper triangular matrix, result of gaussian elimination on A
+    returns:
+        U = upper triangular matrix in row echelon form, result of gaussian elimination on A
+    and, if elim_matrix, returns a tuple containing U and:
         E = elimination matrix (product of elementary matrices, E*A = U)
     """
-    return None
+    U, m, n = A.copy(), A.m, A.n
+    if elim_matrix:
+        E = identity_matrix(m)
+    for j in range(min(m, n)):
+        # ensure a non-zero pivot
+        if U.rows[j].elems[j] == 0:
+            found_new_pivot = False
+            for i in range(j+1, m):
+                if U.rows[i].elems[j] != 0:
+                    U.swap_rows_ip(i, j)
+                    if elim_matrix:
+                        elem_matrix = identity_matrix(m).swap_rows(i, j)
+                        E = elem_matrix * E
+                    found_new_pivot = True
+                    break
+            if not found_new_pivot:
+                continue
+        pivot = U.rows[j].elems[j]
+        
+        # make all non-pivot points below j = 0
+        for i in range(j+1, m):
+            elem = U.rows[i].elems[j]
+            if elem != 0:
+                s = -elem/pivot
+                U.row_add(j, i, s)
+                if elim_matrix:
+                    elem_matrix = identity_matrix(m)
+                    elem_matrix.edit_entry(i, j, s)
+                    E = elem_matrix * E  
 
+    if elim_matrix:
+        return U, E
+    return U
+
+
+def rref(A, elim_matrix=False):
+    """
+    returns:
+        U = upper triangular matrix in reduced row echelon form, result of gaussian elimination on A
+    and, if elim_matrix, returns a tuple containing U and:
+        E = elimination matrix (product of elementary matrices, E*A = U)
+    """
+    U, m, n = ref(A, elim_matrix), A.m, A.n
+    if elim_matrix:
+        U, E = U[0], U[1]
+    # loop over columns backwards: find pivot, scale to 1, then subtract from upper rows
+    for j in range(min(m,n))[::-1]:
+        pivot = U.at(j, j)
+        if pivot:
+            U.row_scale(j, 1/pivot)
+            for i in range(0, j):
+                U.row_add(j, i, -U.at(i, j))
+    return U
 
 if __name__ == "__main__":
+    """
     A1 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     A2 = Matrix(3, 3, [[4, 5, 6], [7, 8, 9], [1, 2, 3]])
     print(A1)
@@ -200,7 +288,37 @@ if __name__ == "__main__":
     print(f"These two:\n{A8}{A9}{A8==A9}")
     print(f"These two:\n{A8}{A10}{A8==A10}")
     print(f"These two:\n{A6}{A7}{A6==A7}")
+    """
 
+    # A20 = identity_matrix(2)
+    # U20 = ref(A20, True)
+    # print(U20[0])
+    # print(U20[1])
 
+    # A21 = Matrix(2, 2, [[1, 3], [2, 8]])
+    # U21, E21 = ref(A21, True)
+    # print(U21)
+    # print(E21 * A21)
+
+    # A22 = Matrix(2, 2, [[1, 3], [2, 6]])
+    # U22, E22 = ref(A22, True)
+    # print(U22)
+    # print(E22 * A22)
+
+    # A23 = Matrix(4, 4, [[2, 3, 3, 8], [10, 2, 4, 5], [1, 2, 0, 2], [4, 3, 7, 20]])
+    # U23, E23 = ref(A23, True)
+    # print(U23)
+    # print(E23 * A23)
+
+    # A24 = Matrix(3, 4, [[1, 3, 1, 9], [1, 1, -1, 1], [3, 11, 5, 35]])
+    # U24, E24 = ref(A24, True)
+    # print(U24)
+    # print(E24 * A24)
+    # U24 = rref(A24)
+    # print(U24)
+
+    # A25 = Matrix(3, 4, [[2, 1, -1, 8], [-3, -1, 2, -11], [-2, 1, 2, -3]])
+    # U25 = rref(A25)
+    # print(U25)
 
 
