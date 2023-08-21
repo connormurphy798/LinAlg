@@ -8,6 +8,7 @@ class Matrix:
         m = number of rows
         n = number of columns
         rows = list of m vectors of size n
+        aug = number of augmented columns (0 if matrix is not augmented)
     """
 
     def __init__(self, m, n, lst=None, aug=0):
@@ -115,12 +116,18 @@ class Matrix:
 
 
     def at(self, i, j):
+        """
+        returns the (i,j) entry of a matrix
+        """
         if i >= self.m:
             raise ValueError("index out of range")
         return self.rows[i].at(j)
 
 
     def copy(self):
+        """
+        returns a deep copy of a matrix
+        """
         lst = []
         for row in self.rows:
             lst.append(row.copy())
@@ -128,12 +135,18 @@ class Matrix:
 
 
     def swap_rows_ip(self, a, b):
+        """
+        swaps rows a and b of a matrix
+        """
         temp = self.rows[a]
         self.rows[a] = self.rows[b]
         self.rows[b] = temp
     
 
     def swap_cols_ip(self, a, b):
+        """
+        swaps columns a and b of a matrix
+        """
         col_a = [row.elems[a] for row in self.rows]
         for i in range(self.m):
             self.rows[i].elems[a] = self.rows[i].elems[b]
@@ -142,12 +155,15 @@ class Matrix:
 
     def row_add(self, a, b, s=1):
         """
-        add s*(row a) to row b
+        adds s*(row a) to row b
         """
         self.rows[b] += self.rows[a].times(s)
 
 
-    def row_scale(self, a, s=1):
+    def row_scale(self, a, s):
+        """
+        scales row a by s
+        """
         self.rows[a] = self.rows[a].times(s)
 
 
@@ -159,6 +175,10 @@ class Matrix:
 
 
     def block(self, pos, size):
+        """
+        grabs a block of a matrix starting at entry (pos[0], pos[1])
+        and of size size[0] by size[1]
+        """
         x, y = pos[0], pos[1]
         dx, dy = size[0], size[1]
 
@@ -172,7 +192,26 @@ class Matrix:
         return Matrix(dx, dy, lst)
 
 
+    def det(self):
+        """
+        returns the determinant of a matrix
+        """
+        if self.m != self.n:
+            raise ValueError("Determinant can only be calculated for square matrices")
+        
+        U, _, d = ref(self)
+        det = 1
+        for i in range(self.m):
+            det *= U.at(i,i)
+        
+        det /= d
+        return (round(det) if Utils.is_integer(det) else det)
+
+
 def trans(A):
+    """
+    returns the transpose of A
+    """
     rows = [[] for i in range(A.n)]
     for i in range(A.m):
         for j in range(A.n):
@@ -181,6 +220,9 @@ def trans(A):
 
 
 def identity_matrix(n):
+    """
+    returns an identity matrix of size n
+    """
     rows = []
     for i in range(n):
         rows.append([(1 if i==j else 0) for j in range(n)])
@@ -188,18 +230,29 @@ def identity_matrix(n):
 
 
 def swap_rows(M, a, b):
+    """
+    returns a copy of matrix M with rows a and b swapped
+    """
     Mstar = M.copy()
     Mstar.swap_rows_ip(a, b)
     return Mstar
 
 
 def swap_cols(M, a, b):
+    """
+    returns a copy of matrix M with columns a and b swapped
+    """
     Mstar = M.copy()
     Mstar.swap_cols_ip(a, b)
     return Mstar
     
 
 def augment(A, b):
+    """
+    returns a new matrix which is A augmented with b.
+    b can be either a vector of size m or a matrix of
+    size m by x, for any x
+    """
     if not isinstance(A, Matrix):
         raise TypeError("Can only augment matrices")
     lst = []
@@ -223,14 +276,19 @@ def augment(A, b):
 
 def ref(A, elim_matrix=False):
     """
-    returns:
+    returns a list containing:
         U = upper triangular matrix in row echelon form, result of gaussian elimination on A
-    and, if elim_matrix, returns a tuple containing U and:
+    and, if elim_matrix:
         E = elimination matrix (product of elementary matrices, E*A = U)
+    and:
+        d = determinant scaling factor (used in calculating determinant from gaussian elimination)
     """
     U, m, n = A.copy(), A.m, A.n
+    d = 1
     if elim_matrix:
         E = identity_matrix(m)
+    else:
+        E = None
     for j in range(min(m, n)):
         # ensure a non-zero pivot
         if U.rows[j].elems[j] == 0:
@@ -238,6 +296,7 @@ def ref(A, elim_matrix=False):
             for i in range(j+1, m):
                 if U.rows[i].elems[j] != 0:
                     U.swap_rows_ip(i, j)
+                    d = -d
                     if elim_matrix:
                         elem_matrix = identity_matrix(m).swap_rows(i, j)
                         E = elem_matrix * E
@@ -258,21 +317,19 @@ def ref(A, elim_matrix=False):
                     elem_matrix.edit_entry(i, j, s)
                     E = elem_matrix * E  
 
-    if elim_matrix:
-        return U, E
-    return U
+    return (U, E, d)
 
 
 def rref(A, elim_matrix=False):
     """
-    returns:
+    returns a list containing:
         U = upper triangular matrix in reduced row echelon form, result of gaussian elimination on A
-    and, if elim_matrix, returns a tuple containing U and:
+    and, if elim_matrix:
         E = elimination matrix (product of elementary matrices, E*A = U)
     """
-    U, m, n = ref(A, elim_matrix), A.m, A.n
-    if elim_matrix:
-        U, E = U[0], U[1]
+    U, E, _ = ref(A, elim_matrix)   # TODO: keep track of E
+    m, n = A.m, A.n
+
     # loop over columns backwards: find pivot, scale to 1, then subtract from upper rows
     for j in range(min(m,n))[::-1]:
         pivot = U.at(j, j)
@@ -280,10 +337,14 @@ def rref(A, elim_matrix=False):
             U.row_scale(j, 1/pivot)
             for i in range(0, j):
                 U.row_add(j, i, -U.at(i, j))
-    return U
+    return U, E
 
 
 def inverse(A):
+    """
+    returns a matrix A_inv, s.t. A*A_inv = A_inv*A = I_n.
+    throws an error for non-square or singular matrices.
+    """
     if A.m != A.n:
         raise ValueError("Non-square matrices are not invertible")
     n = A.n
@@ -397,11 +458,12 @@ if __name__ == "__main__":
     # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])
     # print(inverse(A29))
 
-    A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
-    print(inverse(A30))
+    # A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
+    # print(inverse(A30))
 
-    A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
-    print(inverse(A31))
+    # A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
+    # print(inverse(A31))
 
-
+    A32 = Matrix(2, 2, [[3, 7], [1, -4]])
+    print(A32.det())
     

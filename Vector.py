@@ -59,7 +59,10 @@ class Vector:
         return s
     
 
-    def times(self, k):         
+    def times(self, k):
+        """
+        returns a vector times the scalar k
+        """      
         if type(k) != int and type(k) != float:
             raise TypeError("Can only multiply vectors by scalars.")
         
@@ -70,6 +73,9 @@ class Vector:
 
 
     def dot(self, v):
+        """
+        returns the inner product of two vectors
+        """
         if self.n != v.n:
             raise ValueError("Can only take dot product of vectors of same size.")
         
@@ -80,6 +86,9 @@ class Vector:
     
 
     def mag(self):
+        """
+        returns the magnitude of a vector
+        """
         w = 0
         for i in range(self.n):
             w += (self.elems[i])*(self.elems[i])
@@ -88,12 +97,18 @@ class Vector:
     
 
     def at(self, i):
+        """
+        returns the ith entry of a vector
+        """
         if i >= self.n:
             raise ValueError(f"index out of range")
         return self.elems[i]    
 
 
     def copy(self):
+        """
+        returns a deep copy of a vector
+        """
         return Vector(self.n, self.elems)
             
 
