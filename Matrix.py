@@ -39,8 +39,11 @@ class Matrix:
 
 
     def __add__(self, A):
+        if not isinstance(A, Matrix):
+            raise TypeError("Can only add matrices to matrices")
+
         if self.m != A.m or self.n != A.n:
-            raise ValueError("Can only add matrices of same dimensions.")
+            raise ValueError("Can only add matrices of same dimensions")
         
         B = []
         for i in range(self.m):
@@ -49,6 +52,9 @@ class Matrix:
     
 
     def __sub__(self, A):
+        if not isinstance(A, Matrix):
+            raise TypeError("Can only subtract matrices from matrices")
+        
         if self.m != A.m or self.n != A.n:
             raise ValueError("Can only subtract matrices of same dimensions.")
         
@@ -59,24 +65,39 @@ class Matrix:
     
 
     def __mul__(self, A):
-        m, n, p = self.m, self.n, A.n
-        if self.n != A.m:
-            raise ValueError("Width of left matrix must match height of right matrix.")
-        B = [[] for i in range(m)]
-        At = trans(A)
-        for i in range(m):
-            for j in range(p):
-                B[i].append(self.rows[i].dot(At.rows[j]))
-        return Matrix(m, p, B)
+        if isinstance(A, Matrix):
+            m, p = self.m, A.n
+            if self.n != A.m:
+                raise ValueError("Width of left matrix must match height of right matrix")
+            B = [[] for i in range(m)]
+            At = trans(A)
+            for i in range(m):
+                for j in range(p):
+                    B[i].append(self.rows[i].dot(At.rows[j]))
+            return Matrix(m, p, B)
+        elif isinstance(A, V.Vector):
+            if self.n != A.n:
+                raise ValueError("Size of vector must match width of matrix")
+            return V.Vector(self.m, [row.dot(A) for row in A.rows])
+        raise TypeError("Can only multiply a matrix by a matrix or a vector")       
         
 
     def __eq__(self, A):
-        if (self.m != A.m) or (self.n != A.n):
-            return False
-        for i in range(self.m):
-            if self.rows[i] != A.rows[i]:
+        if isinstance(A, Matrix):
+            if (self.m != A.m) or (self.n != A.n):
                 return False
-        return True
+            for i in range(self.m):
+                if self.rows[i] != A.rows[i]:
+                    return False
+            return True
+        if isinstance(A, V.Vector):   # treats vectors as a matrix of width 1
+            if (self.m != A.n) or (self.n != 1):
+                return False
+            for i in range(self.m):
+                if self.rows[i].elems[0] != A.elems[i]:
+                    return False
+            return True
+        return False
 
 
     def __ne__(self, A):
@@ -128,16 +149,15 @@ class Matrix:
         """
         returns a deep copy of a matrix
         """
-        lst = []
-        for row in self.rows:
-            lst.append(row.copy())
-        return Matrix(self.m, self.n, lst)
+        return Matrix(self.m, self.n, lst=self.rows, aug=self.aug)
 
 
     def swap_rows_ip(self, a, b):
         """
         swaps rows a and b of a matrix
         """
+        if (type(a) != int) or (type(b) != int):
+            raise TypeError("Row numbers must be ints")
         temp = self.rows[a]
         self.rows[a] = self.rows[b]
         self.rows[b] = temp
@@ -147,6 +167,8 @@ class Matrix:
         """
         swaps columns a and b of a matrix
         """
+        if (type(a) != int) or (type(b) != int):
+            raise TypeError("Row numbers must be ints")
         col_a = [row.elems[a] for row in self.rows]
         for i in range(self.m):
             self.rows[i].elems[a] = self.rows[i].elems[b]
@@ -157,6 +179,10 @@ class Matrix:
         """
         adds s*(row a) to row b
         """
+        if (type(a) != int) or (type(b) != int):
+            raise TypeError("Row numbers must be ints")
+        if (type(s) != int) and (type(s) != float):
+            raise TypeError("Scaling factor must be a number")
         self.rows[b] += self.rows[a].times(s)
 
 
@@ -164,6 +190,10 @@ class Matrix:
         """
         scales row a by s
         """
+        if (type(a) != int):
+            raise TypeError("Row number must be int")
+        if (type(s) != int) and (type(s) != float):
+            raise TypeError("Scaling factor must be a number")
         self.rows[a] = self.rows[a].times(s)
 
 
@@ -171,6 +201,8 @@ class Matrix:
         """
         matrix[i, j] = k
         """
+        if (type(i) != int) or (type(j) != int):
+            raise TypeError("Row and column numbers must be ints")
         self.rows[i].elems[j] = k
 
 
@@ -182,7 +214,9 @@ class Matrix:
         x, y = pos[0], pos[1]
         dx, dy = size[0], size[1]
 
-        if x + dx > self.m or y + dy > self.n:
+        if (x < 0 or x >= self.m or
+            y < 0 or y >= self.n or
+            x + dx > self.m or y + dy > self.n):
             raise ValueError("Cannot grab block that exceeds matrix bounds")
         
         lst = []
@@ -208,15 +242,37 @@ class Matrix:
         return (round(det) if Utils.is_integer(det) else det)
 
 
+    def get_non_augmented(self):
+        """
+        returns the first half of an augmented matrix
+        """
+        if self.aug == 0:
+            raise ValueError("Matrix is not augmented")
+        return self.block((0, 0), (self.m, self.n-self.aug))
+
+
+    def get_augmented(self):
+        """
+        returns the second half of an augmented matrix
+        """
+        if self.aug == 0:
+            raise ValueError("Matrix is not augmented")
+        return self.block((0, self.n-self.aug), (self.m, self.aug))
+
+
 def trans(A):
     """
     returns the transpose of A
     """
-    rows = [[] for i in range(A.n)]
-    for i in range(A.m):
-        for j in range(A.n):
-            rows[j].append(A.rows[i].elems[j])
-    return Matrix(A.n, A.m, rows)
+    if isinstance(A, Matrix):
+        rows = [[] for _ in range(A.n)]
+        for i in range(A.m):
+            for j in range(A.n):
+                rows[j].append(A.rows[i].elems[j])
+        return Matrix(A.n, A.m, rows)
+    if isinstance(A, V.Vector):
+        return Matrix(1, A.n, [V.Vector(1, [elem]) for elem in A.elems])
+    raise TypeError("Transpose can only be found for matrices and vectors")
 
 
 def identity_matrix(n):
@@ -350,11 +406,10 @@ def inverse(A):
     n = A.n
     I = identity_matrix(n)
     augmented = augment(A, I)
-    U = rref(augmented)
-    U0 = U.block((0, 0), (n, n))
-    if U0 != I:
+    U = rref(augmented)[0]
+    if U.get_non_augmented() != I:
         raise ValueError("Matrix is not invertible")
-    return U.block((0, n), (n, n))
+    return U.get_augmented()
 
 
 
@@ -455,15 +510,15 @@ if __name__ == "__main__":
     # A28 = Matrix(6, 6, lst28)
     # print(A28.block((1, 2), (3, 3)))
 
-    # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])
+    # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])  # no inverse
     # print(inverse(A29))
 
-    # A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
-    # print(inverse(A30))
+    A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
+    print(inverse(A30))
 
-    # A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
-    # print(inverse(A31))
+    A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
+    print(inverse(A31))
 
-    A32 = Matrix(2, 2, [[3, 7], [1, -4]])
-    print(A32.det())
+    # A32 = Matrix(2, 2, [[3, 7], [1, -4]])
+    # print(A32.det())
     

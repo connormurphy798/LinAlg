@@ -112,6 +112,11 @@ class Vector:
         return Vector(self.n, self.elems)
             
 
+def normalize(v):
+    """
+    returns a vector v scaled to a magnitude of 1
+    """
+    return v.times(1/v.mag())
 
 
 if __name__ == "__main__":
