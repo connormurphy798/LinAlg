@@ -101,7 +101,7 @@ class Vector:
         returns the ith entry of a vector
         """
         if i >= self.n:
-            raise ValueError(f"index out of range")
+            raise IndexError(f"index out of range")
         return self.elems[i]    
 
 
@@ -120,34 +120,7 @@ def normalize(v):
 
 
 if __name__ == "__main__":
-    # checking operations
-    v1 = Vector(4, [4, 5, 1, 2])
-    v2 = Vector(4, [1, 3, 7, 7])
-    v3 = v1 + v2
-    v4 = v1 - v2
-    print(f"v3 = {v3.elems}")
-    print(f"v4 = {v4.elems}")
-
-    v5 = Vector(8)
-    print(f"v5 = {v5.elems}")
-    print(v5)
-
-    v6 = v1.times(3)
-    print(f"v6 = {v6}")
-
-    # errors
-    # v6 = Vector(5, [3, 4, 2])
-    # v7 = Vector(3, [1, 2, 3, 4, 5])
-    # v8 = Vector(3, [1, 2, 3])
-    #v9 = Vector(2, [1, 2])
-    # v10 = v8 - v9
-
-    # other functions
-    # print(v1.dot(v2))
-    # print(v1.dot(v5))
-    # print(Vector(2, [1, 1]).mag())
-    # print(Vector(4, [2, 2, 2, 2]).mag())
-
+    # deep versus shallow copy testing
     v11 = Vector(2, [1, 2])
     v12 = Vector(2, [1, 2])
     v13 = v11
@@ -155,11 +128,9 @@ if __name__ == "__main__":
     print(id(v11) == id(v12))
     print(id(v11) == id(v13))
     print(id(v11) == id(v14))
+    print()
     print(id(v11.elems) == id(v12.elems))
     print(id(v11.elems) == id(v13.elems))
     print(id(v11.elems) == id(v14.elems))
-    print(f"{v11} == {v12}: {v11==v12}")
-    print(f"{v11} == {v1}: {v11==v1}")
-    print(f"{v1} == {v2}: {v1==v2}")
     
     

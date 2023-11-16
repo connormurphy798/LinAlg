@@ -2,27 +2,30 @@ import Vector as V
 import Matrix as M
 import operator as O
 
+import math
 
-def test_func(f, x, y):
+
+def test_func(f, x, y, tol=1e-6):
     """
     test a function f given a list of inputs x and expected output y.
     returns a tuple containing:
-        - whether f(x) == y (bool)
+        - whether f(x) == y (bool), to within tol if f(x) is a float
         - return value of f called on the inputs in x 
     """
     try:
         f_x = f(*x)
     except Exception as e:
         f_x = type(e)
-    return f_x == y, f_x
+    eq = (f_x == y) if (type(f_x) != float) else (abs(f_x - y) < tol)
+    return eq, f_x
 
 
-def test_method(m, o, x, y):
+def test_method(m, o, x, y, tol=1e-6):
     """
     tests the return value of a method m given an object o,
     a list of inputs x, and expected output y.
     returns a tuple containing:
-        - whether o.m(x) == y (bool)
+        - whether o.m(x) == y (bool), to within tol if o.m(x) is a float
         - return value of m called on o and the inputs in x
     NB: does not test whether m correctly handles side effects
     """
@@ -30,7 +33,8 @@ def test_method(m, o, x, y):
         om_x = getattr(o, m.__name__)(*x)
     except Exception as e:
         om_x = type(e)
-    return om_x == y, om_x
+    eq = (om_x == y) if (type(om_x) != float) else (abs(om_x - y) < tol)
+    return eq, om_x
 
 
 def create_case_dict(cases: list, names: dict):
@@ -67,6 +71,7 @@ def run_func_tests(cases: list, names: dict, v: bool):
             print(f"\tTest {i}: {'Passed' if passed else f'Failed (expected {cases[i][2]}, got {result})'}")
         else:
             print(f"\tTest {i}: {'Passed' if passed else 'Failed'} (expected {cases[i][2]}, got {result})")
+    print()
 
 
 def run_method_tests(cases: list, names: dict, v: bool):
@@ -78,7 +83,7 @@ def run_method_tests(cases: list, names: dict, v: bool):
             print(f"\tTest {i}: {'Passed' if passed else f'Failed (expected {cases[i][3]}, got {result})'}")
         else:
             print(f"\tTest {i}: {'Passed' if passed else 'Failed'} (expected {cases[i][3]}, got {result})")
-
+    print()
 
 
 def test_vector_ops(v=False):
@@ -135,7 +140,7 @@ def test_vector_ops(v=False):
         (O.ne, [vec[1], vec[0]], True),
         (O.ne, [vec[0], vec[2]], True),
         (O.ne, [vec[2]+vec[2], vec[7]], False),
-        (O.ne, [vec[2]-vec[2], vec[8]], False),
+        (O.ne, [vec[2]-vec[2], vec[8]], False)
     ]
 
     run_func_tests(cases, names, v)
@@ -167,31 +172,36 @@ def test_vector_methods(v=False):
         V.Vector.dot   : "\n\tInner product (dot):",
         V.Vector.mag   : "\n\tMagnitude (mag):",
         V.Vector.at    : "\n\tGet nth element (at):",
-        V.Vector.copy  : "\n\tCreate deep copy (copy):"
     }
 
 
     cases = [   # (method, object, [inputs], expected)
         (V.Vector.times, vec[0], [3], V.Vector(4, [12, 15, 3, 6])),
-        (V.Vector.times, vec[0], [2], V.Vector(4, [8, 10, 2, 4])),
+        (V.Vector.times, vec[0], [2.0], V.Vector(4, [8.0, 10.0, 2.0, 4.0])),
         (V.Vector.times, vec[2], [1], vec[2]),
         (V.Vector.times, vec[2], [0], vec[8]),
+        (V.Vector.times, vec[2], [vec[1]], TypeError),
 
-        # (O.sub, [vec[0], vec[1]], V.Vector(4, [3, 2, -6, -5])),
-        # (O.sub, [vec[2], vec[3]], vec[7]),
-        # (O.sub, [vec[4], vec[5]], V.Vector(1, [-2])),
+        (V.Vector.dot, vec[4], [vec[5]], 48),
+        (V.Vector.dot, vec[5], [vec[4]], 48),
+        (V.Vector.dot, vec[2], [vec[3]], -290),
+        (V.Vector.dot, vec[3], [vec[2]], -290),
+        (V.Vector.dot, vec[7], [vec[8]], 0),
+        (V.Vector.dot, vec[0], [vec[4]], ValueError),
+        
+        (V.Vector.mag, vec[0], [], math.sqrt(46)),
+        (V.Vector.mag, vec[1], [], 10.392304845),
+        (V.Vector.mag, vec[2], [], math.sqrt(290)),
+        (V.Vector.mag, vec[3], [], math.sqrt(290)),
+        (V.Vector.mag, vec[4], [], 6.0),
+        (V.Vector.mag, vec[5], [], math.sqrt(64.0)),
+        (V.Vector.mag, vec[8], [], 0.0),
 
-        # (O.eq, [vec[1], vec[6]], True),
-        # (O.eq, [vec[1], vec[0]], False),
-        # (O.eq, [vec[0], vec[2]], False),
-        # (O.eq, [vec[2]+vec[2], vec[7]], True),
-        # (O.eq, [vec[2]-vec[2], vec[8]], True),
-
-        # (O.ne, [vec[1], vec[6]], False),
-        # (O.ne, [vec[1], vec[0]], True),
-        # (O.ne, [vec[0], vec[2]], True),
-        # (O.ne, [vec[2]+vec[2], vec[7]], False),
-        # (O.ne, [vec[2]-vec[2], vec[8]], False),
+        (V.Vector.at, vec[0], [0], 4),
+        (V.Vector.at, vec[0], [1], 5),
+        (V.Vector.at, vec[0], [-2], 1),
+        (V.Vector.at, vec[0], [-1], 2),
+        (V.Vector.at, vec[2], [3], IndexError)
     ]
 
     run_method_tests(cases, names, v)
@@ -200,4 +210,4 @@ def test_vector_methods(v=False):
 
 if __name__ == "__main__":
     test_vector_ops()
-    # test_vector_methods()
+    test_vector_methods()

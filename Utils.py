@@ -1,4 +1,4 @@
-def is_integer(k, tol=10e-9):
+def is_integer(k, tol=1e-9):
     return abs(k - round(k)) <= tol
     
 
