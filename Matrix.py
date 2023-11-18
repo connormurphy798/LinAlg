@@ -78,7 +78,7 @@ class Matrix:
         elif isinstance(A, V.Vector):
             if self.n != A.n:
                 raise ValueError("Size of vector must match width of matrix")
-            return V.Vector(self.m, [row.dot(A) for row in A.rows])
+            return V.Vector(self.m, [row.dot(A) for row in self.rows])
         raise TypeError("Can only multiply a matrix by a matrix or a vector")       
         
 
@@ -415,7 +415,6 @@ def inverse(A):
 
 
 if __name__ == "__main__":
-    """
     A1 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     A2 = Matrix(3, 3, [[4, 5, 6], [7, 8, 9], [1, 2, 3]])
     print(A1)
@@ -424,7 +423,7 @@ if __name__ == "__main__":
     A4 = A1 - A2
     print(A3)
     print(A4)
-
+    """
     A5 = Matrix(4, 3, [[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]])
     print(trans(A5))
 
@@ -513,11 +512,11 @@ if __name__ == "__main__":
     # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])  # no inverse
     # print(inverse(A29))
 
-    A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
-    print(inverse(A30))
+    # A30 = Matrix(2, 2, [[-1, 1.5], [1, -1]])
+    # print(inverse(A30))
 
-    A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
-    print(inverse(A31))
+    # A31 = Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 2, 9]])
+    # print(inverse(A31))
 
     # A32 = Matrix(2, 2, [[3, 7], [1, -4]])
     # print(A32.det())

@@ -148,7 +148,7 @@ def test_vector_ops(v=False):
 
 def test_vector_methods(v=False):
     """
-    Tests vector methods: .times(), .dot(), .mag(), .at(), and .copy().
+    Tests vector methods: .times(), .dot(), .mag(), and .at().
     """
     print(f"Testing vector methods:{' (verbose feedback)' if v else ''}")
     
@@ -207,7 +207,82 @@ def test_vector_methods(v=False):
     run_method_tests(cases, names, v)
 
 
+def test_matrix_ops(v=False):
+    """
+    Tests supported matrix operators: +, -, *, ==, and !=.
+    """
+    print(f"Testing matrix operators:{' (verbose feedback)' if v else ''}")
+    
+    mat = [
+        M.Matrix(3, 3, [[1, 2, 3], [4, 5, 6], [7, 8, 9]]),  # 0
+        M.Matrix(3, 3, [[4, 5, 6], [7, 8, 9], [1, 2, 3]]),
+        M.Matrix(2, 3, [[7, 2, 1], [5, 5, 3]]),
+        M.Matrix(2, 3, [[2, 6, 4], [4, 2, 9]]),
+
+        M.Matrix(3, 4, [[7, 2, 4, 6], [6, 3, 0, 1], [2, 5, 2, 6]]),           # 4
+        M.Matrix(3, 3),
+        M.Matrix(2, 2),
+        M.Matrix(2, 2, [[3, 1], [4, 1]]),
+
+        M.Matrix(3, 3, [[0, 0, 0], [0, 0, 0], [0, 0, 0]]),  # 8
+        M.Matrix(2, 3, [[2, 6, 4], [4, 2, 9]])
+
+    ]
+
+    names = {
+        O.add : "\n\tAddition (+):",
+        O.sub : "\n\tSubtraction (-):",
+        O.mul : "\n\tMultiplication (*)",
+        O.eq  : "\n\tEquality (==):",
+        O.ne  : "\n\tInequality (!=):"
+    }
+
+
+    cases = [   # (op, [inputs], expected)
+        (O.add, [mat[0], mat[1]], M.Matrix(3, 3, [[5, 7, 9], [11, 13, 15], [8, 10, 12]])),
+        (O.add, [mat[0], mat[0]], M.Matrix(3, 3, [[2, 4, 6], [8, 10, 12], [14, 16, 18]])),
+        (O.add, [mat[2], mat[3]], M.Matrix(2, 3, [[9, 8, 5], [9, 7, 12]])),
+        (O.add, [mat[1], mat[5]], mat[1]),
+        (O.add, [mat[0], mat[4]], ValueError),
+        (O.add, [mat[0], mat[6]], ValueError),
+
+
+        (O.sub, [mat[1], mat[0]], M.Matrix(3, 3, [[3, 3, 3], [3, 3, 3], [-6, -6, -6]])),
+        (O.sub, [mat[0], mat[0]], M.Matrix(3, 3)),
+        (O.sub, [mat[2], mat[3]], M.Matrix(2, 3, [[5, -4, -3], [1, 3, -6]])),
+        (O.sub, [mat[7], mat[6]], mat[7]),
+        (O.sub, [mat[5], mat[4]], ValueError),
+        (O.sub, [mat[0], mat[6]], ValueError),
+
+        (O.mul, [mat[0], mat[1]], M.Matrix(3, 3, [[21, 27, 33], [57, 72, 87], [93, 117, 141]])),
+        (O.mul, [mat[0], mat[5]], mat[8]),
+        (O.mul, [mat[1], mat[4]], M.Matrix(3, 4, [[70, 53, 28, 65], [115, 83, 46, 104], [25, 23, 10, 26]])),
+        (O.mul, [mat[4], mat[1]], ValueError),
+        (O.mul, [mat[7], M.identity_matrix(2)], mat[7]),
+        (O.mul, [mat[2], V.Vector(3, [3, 2, 1])], V.Vector(2, [26, 28])),
+        (O.mul, [mat[2], V.Vector(2, [2, 1])], ValueError),
+
+        (O.eq, [mat[5], mat[8]], True),
+        (O.eq, [mat[3], mat[9]], True),
+        (O.eq, [mat[0]-mat[0], mat[5]], True),
+        (O.eq, [mat[0], mat[1]], False),
+        (O.eq, [mat[0], mat[2]], False),
+        (O.eq, [mat[0], mat[4]], False),
+        (O.eq, [mat[3], mat[3]], True),
+
+        (O.ne, [mat[5], mat[8]], False),
+        (O.ne, [mat[3], mat[9]], False),
+        (O.ne, [mat[0]-mat[0], mat[5]], False),
+        (O.ne, [mat[0], mat[1]], True),
+        (O.ne, [mat[0], mat[2]], True),
+        (O.ne, [mat[0], mat[4]], True),
+        (O.ne, [mat[3], mat[3]], False)
+    ]
+
+    run_func_tests(cases, names, v)
+
 
 if __name__ == "__main__":
-    test_vector_ops()
-    test_vector_methods()
+    # test_vector_ops()
+    # test_vector_methods()
+    test_matrix_ops()

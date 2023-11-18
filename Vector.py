@@ -22,6 +22,9 @@ class Vector:
 
 
     def __add__(self, v):
+        if not isinstance(v, Vector):
+            raise TypeError("Can only add vectors to vectors.")
+
         if self.n != v.n:
             raise ValueError("Can only add vectors of same size.")
         
@@ -32,6 +35,9 @@ class Vector:
 
 
     def __sub__(self, v):
+        if not isinstance(v, Vector):
+            raise TypeError("Can only subtract vectors from vectors.")
+
         if self.n != v.n:
             raise ValueError("Can only subtract vectors of same size.")
         
@@ -42,6 +48,9 @@ class Vector:
 
 
     def __eq__(self, v):
+        if not isinstance(v, Vector):
+            return False
+        
         if self.n != v.n:
             return False
         for i in range(self.n):
