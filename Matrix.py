@@ -206,9 +206,9 @@ class Matrix:
         self.rows[i].elems[j] = k
 
 
-    def block(self, pos, size):
+    def submatrix(self, pos, size):
         """
-        grabs a block of a matrix starting at entry (pos[0], pos[1])
+        grabs a submatrix of a matrix starting at entry (pos[0], pos[1])
         and of size size[0] by size[1]
         """
         x, y = pos[0], pos[1]
@@ -217,7 +217,7 @@ class Matrix:
         if (x < 0 or x >= self.m or
             y < 0 or y >= self.n or
             x + dx > self.m or y + dy > self.n):
-            raise ValueError("Cannot grab block that exceeds matrix bounds")
+            raise ValueError("Cannot grab submatrix that exceeds matrix bounds")
         
         lst = []
         for i in range(x, x+dx):
@@ -248,7 +248,7 @@ class Matrix:
         """
         if self.aug == 0:
             raise ValueError("Matrix is not augmented")
-        return self.block((0, 0), (self.m, self.n-self.aug))
+        return self.submatrix((0, 0), (self.m, self.n-self.aug))
 
 
     def get_augmented(self):
@@ -257,7 +257,7 @@ class Matrix:
         """
         if self.aug == 0:
             raise ValueError("Matrix is not augmented")
-        return self.block((0, self.n-self.aug), (self.m, self.aug))
+        return self.submatrix((0, self.n-self.aug), (self.m, self.aug))
 
 
 def trans(A):
@@ -507,7 +507,7 @@ if __name__ == "__main__":
 
     # lst28 = [[i*6+j for j in range(6)] for i in range(6)]
     # A28 = Matrix(6, 6, lst28)
-    # print(A28.block((1, 2), (3, 3)))
+    # print(A28.submatrix((1, 2), (3, 3)))
 
     # A29 = Matrix(3, 3, [[1, 4, 5], [2, 8, 10], [6, 2, 1]])  # no inverse
     # print(inverse(A29))
